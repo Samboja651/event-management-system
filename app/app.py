@@ -1,14 +1,14 @@
-from flask import Flask, render_template, json, request
-from db import connect_db
-from accounts import username, password, hostname
+from flask import Flask, render_template, json, request, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
+from accounts import username, password, hostname
+from db import connect_db
 import mysql.connector
 
 app = Flask(__name__)
 
 @app.get("/")
 def home_page():
-    return "hello"
+    return "<h1>hello! HAKUNA MATATA.</h1>"
     # return render_template("")
 
 @app.get("/events")
@@ -59,10 +59,24 @@ def create_account():
         cursor.execute(store_user, (name, email, hashed_password))
         conn.commit()
         conn.close()
+
         print("Account successfully created")
-        return "Account successfully created" # otherwise return home page
+        return redirect(url_for("home_page"))
     except ValueError as e:
         return f"You have an Error! {e}"
     except mysql.connector.Error as e:
         return f"You have an Error! {e}"
+    pass
+
+@app.route("/account/login", methods = ["GET", "POST"])
+def login_user():
+    if request.method == "GET":
+        return render_template("auth/login.html")
+    # TODO: FETCH email and password from form submission
+
+    # TODO: FETCH the user record from the database. Validate user exists
+
+    # TODO: use the module check_password_hash() to validate password
+
+    # TODO: finally redirect user to home page.
     pass

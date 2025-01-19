@@ -1,16 +1,16 @@
 # event-management-system-backend
 
 ## Setup
-Create virtual environmen run `python3 -m venv .venv`
+Create virtual environmen run `python3 -m venv .venv` \
 To activate virtual environment: \
 On windows run `.\.venv\Scripts\activate ` \
-On linux ubuntu - venv is automatically activated. Alternatively run `.\.venv\bin\activate` .
+On Linux>ubuntu - venv is automatically activated. Alternatively run `.\.venv\bin\activate` .
 
 ## Install packages
 Run this command `pip install -r .\requirement.txt`
 
 ## Configure the database
-Assuming you have setup your mysql server.\
+Assuming you have mysql server installed on your machine. \
 To connect to mysql server locally we need:
 - mysql username, by default mysql uses `root`. change otherwise.
 - mysql login password.
@@ -28,5 +28,8 @@ open the file accounts.py and write your mysql logins.\
 > `/` - get the landing/home page. \
 > `/events` - get all events data in database. \
 > `/account/signup` - create a new account. **Note, uses post to specifically get the name, email, and password. Its expected you have the same naming of attributes in signup forms. eg `<input type="email" name="email"`**
+> `/account/login` - user login
 
 **Note: the current templates are dummy, for testing, replace html with main templates.**
+
+TODO DIRECTORY STRUCTURE
