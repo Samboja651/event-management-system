@@ -16,7 +16,7 @@ def create_db(username: str, password: str, host: str):
     except Exception as e:
         print(e)
 
-create_db(username, password, hostname)
+# create_db(username, password, hostname)
 
 def connect_db():
    try:
