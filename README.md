@@ -20,3 +20,13 @@ open the file accounts.py and write your mysql logins.\
 **Note the accounts.py file is ignored (not pushed to remote repo, so no worry your logins belong to you.)**
 - Now run command `python .\app\db.py`
 - open your mysql check the new db created `event_management_sys`.
+
+## populate db with dummy data
+> run this command `python .\app\seed.py `
+
+## API END POINTS
+> `/` - get the landing/home page. \
+> `/events` - get all events data in database. \
+> `/account/signup` - create a new account. **Note, uses post to specifically get the name, email, and password. Its expected you have the same naming of attributes in signup forms. eg `<input type="email" name="email"`**
+
+**Note: the current templates are dummy, for testing, replace html with main templates.**
