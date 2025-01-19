@@ -18,7 +18,7 @@ def create_db(username: str, password: str, host: str):
 
 # create_db(username, password, hostname)
 
-def connect_db():
+def connect_db(username, hostname, password):
    try:
        connection = mysql.connector.connect(
            user = username,
@@ -33,7 +33,7 @@ def connect_db():
 
 def create_tables():
     try:
-        connection = connect_db()
+        connection = connect_db(username, hostname, password)
         cursor = connection.cursor()
 
         with open("./app/schema.sql", mode = "r", encoding="utf-8") as schema:
