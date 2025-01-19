@@ -30,6 +30,10 @@ open the file accounts.py and write your mysql logins.\
 > `/account/signup` - create a new account. **Note, uses post to specifically get the name, email, and password. Its expected you have the same naming of attributes in signup forms. eg `<input type="email" name="email"`**
 > `/account/login` - user login
 
+## running the app
+- first run `cd .\app\`
+- finally run `flask run --debug`
+
 **Note: the current templates are dummy, for testing, replace html with main templates.**
 
 TODO DIRECTORY STRUCTURE
