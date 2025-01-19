@@ -1,13 +1,14 @@
 from flask import Flask, render_template, json, request
 from db import connect_db
 from accounts import username, password, hostname
-
+from werkzeug.security import generate_password_hash, check_password_hash
+import mysql.connector
 
 app = Flask(__name__)
 
 @app.get("/")
 def home_page():
-    pass
+    return "hello"
     # return render_template("")
 
 @app.get("/events")
@@ -39,3 +40,29 @@ def get_all_events():
     event_list = json.dumps(event_list, indent = 4) # convert to json. api format.
     return event_list
 
+@app.route("/account/signup", methods = ["GET", "POST"])
+def create_account():
+    if request.method == "GET":
+        pass
+        return render_template("/auth/signup.html")
+    try:
+        name = request.form.get("name")
+        email = request.form.get("email")
+        user_password = request.form["password"]
+        
+        # hash the password
+        hashed_password = generate_password_hash(user_password)
+        # store user
+        conn = connect_db(username, hostname, password)
+        cursor = conn.cursor()
+        store_user = "INSERT INTO customers(name, email, password)VALUES(%s, %s, %s)"
+        cursor.execute(store_user, (name, email, hashed_password))
+        conn.commit()
+        conn.close()
+        print("Account successfully created")
+        return "Account successfully created" # otherwise return home page
+    except ValueError as e:
+        return f"You have an Error! {e}"
+    except mysql.connector.Error as e:
+        return f"You have an Error! {e}"
+    pass
