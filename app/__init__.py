@@ -6,6 +6,8 @@ import mysql.connector
 
 app = Flask(__name__)
 
+
+
 @app.get("/")
 def home_page():
     return "<h1>hello! HAKUNA MATATA.</h1>"
