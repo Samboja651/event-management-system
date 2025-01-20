@@ -29,6 +29,33 @@ open the file accounts.py and write your mysql logins.\
 > `/events` - get all events data in database. \
 > `/account/signup` - create a new account. **Note, uses post to specifically get the name, email, and password. Its expected you have the same naming of attributes in signup forms. eg `<input type="email" name="email"`**
 > `/account/login` - user login
+### `/account/login`
+**Method:** POST  
+**Description:** Allows a user to log in by submitting their email and password.  
+**Request Parameters:**
+- `email` (string): The user's email address.
+- `password` (string): The user's password.
+
+**Response:**
+- On success: Redirects to the home page with a welcome message.
+- On failure: Returns an error message "Invalid email or password!".
+
+**Example Request:**
+```http
+POST /account/login
+Content-Type: application/x-www-form-urlencoded
+
+email=user@example.com&password=securepassword
+```
+
+**Example Response:**
+- Success: Redirects to `/home_page`.
+- Failure: Returns "Invalid email or password!".
+
+**Notes:**
+- Passwords are hashed and stored securely in the database.
+- Uses the `check_password_hash` function to validate the password.
+- If an error occurs, appropriate error messages are returned.
 
 ## running the app
 - first run `cd .\app\`
