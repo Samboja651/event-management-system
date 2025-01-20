@@ -1,4 +1,4 @@
-from flask import Flask, render_template, json, request, redirect, url_for
+from flask import flash, Flask, render_template, json, request, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from accounts import username, password, hostname
 from db import connect_db
@@ -49,9 +49,24 @@ def create_account():
         name = request.form.get("name")
         email = request.form.get("email")
         user_password = request.form["password"]
+        confirm_password =request.form.get("confirm_password")
+
+        # Basic validation
+        if not name or not email or not user_password or not confirm_password:
+            flash("All fields are required.")
+            return render_template('auth/signuo.html')
+        
+        if user_password != confirm_password:
+            flash("Password do not match.")
+            return render_template('auth/signup.html')
+        
+        if len(user_password) < 8:
+            flash("Password must be at least 8 characters long.")
+            return render_template('auth/signup.html')
         
         # hash the password
         hashed_password = generate_password_hash(user_password)
+
         # store user
         conn = connect_db(username, hostname, password)
         cursor = conn.cursor()
@@ -60,23 +75,55 @@ def create_account():
         conn.commit()
         conn.close()
 
-        print("Account successfully created")
+        flash("Account successfully created")
         return redirect(url_for("home_page"))
-    except ValueError as e:
-        return f"You have an Error! {e}"
     except mysql.connector.Error as e:
-        return f"You have an Error! {e}"
+        flash(f"Database error: {e}")
+        return render_template('auth/signup.html')
     pass
 
 @app.route("/account/login", methods = ["GET", "POST"])
 def login_user():
     if request.method == "GET":
+        pass
         return render_template("auth/login.html")
-    # TODO: FETCH email and password from form submission
+    
+    try:
+        # Fetch emal and password from the submissin form
+        email = request.form.get("email")
+        user_password = request.form.get("password")
 
-    # TODO: FETCH the user record from the database. Validate user exists
+        # Basic validation
+        if not email or not password:
+            flash("Both email and password are required.")
+            return render_template('auth/login.html')
+        
+        # Fetch the user record from the database
+        conn = connect_db(username, hostname, password)
+        cursor = conn.cursor()
+        fetch_user = "SELECT email, paasword FROM customers WHERE email = %s"
 
-    # TODO: use the module check_password_hash() to validate password
+        cursor.execute(fetch_user, (email,))
+        user_record = cursor.fetchone()
 
-    # TODO: finally redirect user to home page.
+        # Check if user exists
+        if not user_record:
+            flash("User does not exist.")
+            return render_template('auth?login.html')
+        
+        # Validate password
+        stored_email, stored_password = user_record
+        if not check_password_hash(stored_password,user_password):
+            flash("Incorrect password.")
+            return render_template('auth/login.html')
+        
+        # Close database connection
+        conn.close()
+
+        # Redirect to home page if login is successful
+        flash("Logged in successfully.")
+        return redirect(url_for(home_page))
+    except mysql.connector.Error as e:
+        flash(f"Database error: {e}")
+        return render_template('auth/login.html')
     pass

@@ -1,7 +1,7 @@
 from db import connect_db
 from accounts import username, password, hostname
 
-# this dammy data for db
+# this dummy data for db
 def seed_db():
     """populate db with dummy data."""
     conn = connect_db(username, hostname, password)

@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     event_fee DECIMAL(10, 2) NOT NULL,
     capacity INT NOT NULL DEFAULT 200, -- Maximum number of attendees
     categories VARCHAR(255) DEFAULT 'General' -- Category of the event
+    location VARCHAR(255) NOT NULL -- Location of the event
 );
 CREATE TABLE IF NOT EXISTS CUSTOMERS (
     id INT AUTO_INCREMENT PRIMARY KEY,
