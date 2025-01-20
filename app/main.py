@@ -1,41 +1,36 @@
 from flask import Flask, render_template, json, request, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from db import connect_db
-import mysql.connector
+from .db import get_db, init_app
 import os
 
 def create_app():
     app = Flask(__name__)
-    app.config["MYSQL_DATABASE"] = os.getenv("MYSQL_DATABASE")
-    app.config["MYSQLUSER"] = os.getenv("MYSQLUSER")
-    app.config["MYSQLPASSWORD"] = os.getenv("MYSQL_PASSWORD")
-    app.config["MYSQLHOST"] = os.getenv("MYSQLHOST")
-    app.config["MYSQL_URL"] = os.getenv("event-management-sys-db.MYSQL_URL")
-    app.config["ENV"] = "PRODUCTION"
-    app.config["DEBUG"] = "FALSE"
+    app.config.from_mapping(
+        DATABASE = os.path.join(app.instance_path, 'event_management_sys.db')
+    )
 
-    # now env variables to local variables
-    DATABASE = os.getenv("MYSQL_DATABASE")
-    USERNAME = os.getenv("MYSQLUSER")
-    PASSWORD = os.getenv("MYSQL_PASSWORD")
-    HOSTNAME = os.getenv("MYSQLHOST")
-    MYSQL_URL = os.getenv("event-management-sys-db.MYSQL_URL")
+    # ensure the instance folder exists
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        # ignore as folder exists
+        pass
 
     @app.get("/")
-    def home():
+    def home_page():
         return "<h1>hello! HAKUNA MATATA.</h1>"
         # return render_template("")
 
-    @app.get("/events")
+    @app.get("/api/events")
     def get_all_events():
 
         def __get_events():
-            conn = MYSQL_URL
-            cursor = conn.cursor()
+            db = get_db()
+            cursor = db.cursor()
             get_events = "SELECT event_name, description, date, event_image, event_fee, categories FROM events"
             cursor.execute(get_events)
             records = cursor.fetchall()
-            conn.close()
+            db.close()
             return records
         
         events = __get_events()
@@ -55,7 +50,7 @@ def create_app():
         event_list = json.dumps(event_list, indent = 4) # convert to json. api format.
         return event_list
 
-    @app.route("/account/signup", methods = ["GET", "POST"])
+    @app.route("/api/account/signup", methods = ["GET", "POST"])
     def create_account():
         if request.method == "GET":
             pass
@@ -68,38 +63,64 @@ def create_app():
             # hash the password
             hashed_password = generate_password_hash(user_password)
             # store user
-            conn = connect_db(USERNAME, HOSTNAME, PASSWORD)
-            cursor = conn.cursor()
-            store_user = "INSERT INTO customers(name, email, password)VALUES(%s, %s, %s)"
+            db = get_db()
+            cursor = db.cursor()
+            store_user = "INSERT INTO customers(name, email, password)VALUES(?, ?, ?)"
             cursor.execute(store_user, (name, email, hashed_password))
-            conn.commit()
-            conn.close()
+            db.commit()
+            db.close()
 
             print("Account successfully created")
             return redirect(url_for("home_page"))
         except ValueError as e:
             return f"You have an Error! {e}"
-        except mysql.connector.Error as e:
+        except Exception as e:
             return f"You have an Error! {e}"
-        pass
 
-    @app.route("/account/login", methods = ["GET", "POST"])
+    @app.route("/api/account/login", methods=["GET", "POST"])
     def login_user():
         if request.method == "GET":
             return render_template("auth/login.html")
-        # TODO: FETCH email and password from form submission
-
-        # TODO: FETCH the user record from the database. Validate user exists
-
-        # TODO: use the module check_password_hash() to validate password
-
-        # TODO: finally redirect user to home page.
         
-    # register urls for routing
+        try:
+            # Fetch email and password from form submission
+            email = request.form.get("email")
+            user_password = request.form.get("password")
+            
+            # Connect to the database
+            db = get_db()
+            cursor = db.cursor()
+            
+            # Fetch user record by email
+            query = "SELECT id, name, email, password FROM customers WHERE email = ?"
+            cursor.execute(query, (email,))
+            user = cursor.fetchone()
+            
+            # If user does not exist, return error
+            if not user:
+                return "Invalid email or password!"
+            
+            # Validate the password using check_password_hash
+            stored_password_hash = user[3]  # Password is the 4th column in the returned record
+            if not check_password_hash(stored_password_hash, user_password):
+                return "Invalid email or password!"
+            
+            # If the password matches, login is successful. Redirect to home page.
+            print(f"Welcome back, {user[1]}!")
+            db.close()
+            return redirect(url_for("home_page"))
+        
+        except ValueError as e:
+            return f"You have an error! {e}"
+        except Exception as e:
+            return f"You have an Error! {e}"
+
+    init_app(app) # to initialize db run flask --app app init-db
+    # register url routes
     app.add_url_rule("/", endpoint="home")
-    app.add_url_rule("/events", endpoint="get_all_events")
-    app.add_url_rule("/account/signup", endpoint="create_account")
-    app.add_url_rule("/account/login", endpoint="login_user")
+    app.add_url_rule("/api/events", endpoint="get_all_events")
+    app.add_url_rule("/api/account/signup", endpoint="create_account")
+    app.add_url_rule("/api/accounts/login", endpoint="login_user")
 
     return app
 
@@ -107,4 +128,3 @@ app = create_app()
 
 if __name__ == "__main__":
     app = create_app()
-        
