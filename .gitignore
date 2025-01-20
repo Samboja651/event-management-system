@@ -2,4 +2,4 @@
 accounts.py
 test*
 __pycache__
-.env
+instance/

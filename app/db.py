@@ -1,56 +1,57 @@
-import mysql.connector
-import os
+import sqlite3, click
+from flask import current_app
 
-DATABASE = os.getenv("MYSQL_DATABASE")
-USERNAME = os.getenv("MYSQLUSER")
-PASSWORD = os.getenv("MYSQL_PASSWORD")
-HOSTNAME = os.getenv("MYSQLHOST")
 
-def create_db(USERNAME: str, PASSWORD: str, host: str):
-    try:
-        with mysql.connector.connect(
-            user = USERNAME,
-            host = host,
-            PASSWORD = PASSWORD
-        ) as connection:
-            create_db = "CREATE DATABASE event_management_sys"
-            with connection.cursor() as cursor:
-                cursor.execute(create_db)
-                print("db successfully created")
-    except Exception as e:
-        print(e)
+def get_db():
+    db = sqlite3.connect(
+        current_app.config['DATABASE'],
+        detect_types = sqlite3.PARSE_DECLTYPES
+    )
+    db.row_factory = sqlite3.Row #tells the connection to return rows that behave like dicts. it allows accessing the columns by names
+    return db
 
-# create_db(USERNAME, PASSWORD, HOSTNAME)
+def seed_db():
+    """populate db with dummy data."""
+    db = get_db()
+    cursor = db.cursor()
 
-def connect_db(USERNAME, HOSTNAME, PASSWORD):
-   try:
-       connection = mysql.connector.connect(
-           user = USERNAME,
-           host = HOSTNAME,
-           PASSWORD = PASSWORD,
-           database = "event_management_sys"
-       )
-       print("Database is now connected.")
-       return connection
-   except Exception as error:
-       return f"Error! Check if Database exists, addition info: {error}"
+    event_data = [
+        ("Hactoberfest", "Come and Lets talk about security of systems", "2025-10-10", 500.0, "Tech"),
+        ("Makosa in Yangu", "Enjoy a thrilling comedy, all made local.", "2025-12-10", 1000.0, "Entertaiment"),
+        ("Lishe Bora", "Elimishwa jinsi ya kujikinga dhidi ya malaria.", "2025-11-10", 1000.0, "Health")
+    ]
+    cursor.executemany("INSERT INTO events (event_name, description, date, event_fee, categories)VALUES (?, ?, ?, ?, ?)", event_data)
+    db.commit()
+    db.close()
 
-def create_tables():
-    try:
-        connection = connect_db(USERNAME, HOSTNAME, PASSWORD)
-        cursor = connection.cursor()
+    
+def init_db():
+    db = get_db()
+    with current_app.open_resource("schema.sql")as schema:
+        db.executescript(schema.read().decode("utf-8"))
+    seed_db() # fist time server runs, populate db with dummy data
+    db.close()
 
-        with open("./app/schema.sql", mode = "r", encoding="utf-8") as schema:
-            db_schema = schema.read().split(";")
-        for statement in db_schema:
-            if statement.strip():
-                cursor.execute(statement.strip(";"))
-        connection.commit()
-        connection.close()
-        print("Tables successfully created.")
-    except FileExistsError as e:
-        return e
-    except Exception as error:
-        return error
 
-create_tables()
+def delete_db():
+    db = get_db()
+    cursor = db.cursor()
+    statement = "DROP DATABASE ?"
+    cursor.execute(statement, current_app.config["DATABASE"])
+    db.commit() # not sure this line is relevant
+    db.close()
+
+@click.command("init-db")
+def init_db_command():
+    """create new tables if the don't exists"""
+    init_db()
+    click.echo("Initialized the database.")
+
+@click.command("delete-db")
+def delete_db_command():
+    """delete database"""
+    click.echo("Database was deleted.")
+
+def init_app(app):
+    app.cli.add_command(init_db_command)
+    app.cli.add_command(delete_db_command)
