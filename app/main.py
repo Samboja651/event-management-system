@@ -69,16 +69,40 @@ def create_account():
     except mysql.connector.Error as e:
         return f"You have an Error! {e}"
     pass
-
-@app.route("/account/login", methods = ["GET", "POST"])
+@app.route("/account/login", methods=["GET", "POST"])
 def login_user():
     if request.method == "GET":
         return render_template("auth/login.html")
-    # TODO: FETCH email and password from form submission
-
-    # TODO: FETCH the user record from the database. Validate user exists
-
-    # TODO: use the module check_password_hash() to validate password
-
-    # TODO: finally redirect user to home page.
-    pass
+    
+    try:
+        # Fetch email and password from form submission
+        email = request.form.get("email")
+        user_password = request.form.get("password")
+        
+        # Connect to the database
+        conn = connect_db(username, hostname, password)
+        cursor = conn.cursor()
+        
+        # Fetch user record by email
+        query = "SELECT id, name, email, password FROM customers WHERE email = %s"
+        cursor.execute(query, (email,))
+        user = cursor.fetchone()
+        
+        # If user does not exist, return error
+        if not user:
+            return "Invalid email or password!"
+        
+        # Validate the password using check_password_hash
+        stored_password_hash = user[3]  # Password is the 4th column in the returned record
+        if not check_password_hash(stored_password_hash, user_password):
+            return "Invalid email or password!"
+        
+        # If the password matches, login is successful. Redirect to home page.
+        print(f"Welcome back, {user[1]}!")
+        conn.close()
+        return redirect(url_for("home_page"))
+    
+    except ValueError as e:
+        return f"You have an error! {e}"
+    except mysql.connector.Error as e:
+        return f"Database error: {e}"
