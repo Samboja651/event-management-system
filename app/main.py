@@ -9,6 +9,7 @@ app.config["MYSQL_DATABASE"] = os.getenv("MYSQL_DATABASE")
 app.config["MYSQLUSER"] = os.getenv("MYSQLUSER")
 app.config["MYSQLPASSWORD"] = os.getenv("MYSQL_PASSWORD")
 app.config["MYSQLHOST"] = os.getenv("MYSQLHOST")
+app.config["MYSQL_URL"] = os.getenv("event-management-sys-db.MYSQL_URL")
 app.config["ENV"] = "PRODUCTION"
 app.config["DEBUG"] = "FALSE"
 
