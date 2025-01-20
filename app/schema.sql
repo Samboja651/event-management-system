@@ -8,22 +8,18 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     capacity INTEGER NOT NULL DEFAULT 200, -- Maximum number of attendees
     categories VARCHAR(50) DEFAULT 'General' -- Category of the event
 );
+
 CREATE TABLE IF NOT EXISTS CUSTOMERS (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR() NOT NULL,
-    email VARCHAR() UNIQUE NOT NULL,
-    password VARCHAR() NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(50) NOT NULL,
     role VARCHAR(50) NOT NULL
 );
--- CREATE TABLE IF NOT EXISTS EVENT_MANAGERS (
---     id INTEGER PRIMARY KEY AUTOINCREMENT,
---     name VARCHAR() NOT NULL,
---     email VARCHAR() UNIQUE NOT NULL,
---     password VARCHAR() NOT NULL
--- );
+
 CREATE TABLE IF NOT EXISTS PAYMENTS (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    payment_method VARCHAR() NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
     event_id INTEGER NOT NULL,
     customer_id INTEGER NOT NULL,
     amount_paid DECIMAL(10, 2) NOT NULL,
@@ -31,6 +27,7 @@ CREATE TABLE IF NOT EXISTS PAYMENTS (
     FOREIGN KEY (event_id) REFERENCES EVENTS(id),
     FOREIGN KEY (customer_id) REFERENCES CUSTOMERS(id)
 );
+
 CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_manager_id INTEGER NOT NULL,
@@ -38,27 +35,15 @@ CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
     notification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_manager_id) REFERENCES EVENT_MANAGERS(id)
 );
--- Trigger to notify event manager of new payment
-DELIMITER $$
 
+-- Trigger to notify event manager of new payment
 CREATE TRIGGER notify_event_manager_after_payment
 AFTER INSERT ON PAYMENTS
 FOR EACH ROW
 BEGIN
-    DECLARE manager_id INTEGER;
-
-    -- Get the event manager for the event
-    SELECT id INTO manager_id
-    FROM EVENT_MANAGERS
-    WHERE id = (SELECT id FROM EVENTS WHERE id = NEW.event_id);
-
-    -- Insert a notification into the NOTIFICATIONS table
     INSERT INTO NOTIFICATIONS (event_manager_id, message)
     VALUES (
-        manager_id,
-        CONCAT('A new payment has been made for Event ID: ', NEW.event_id)
+        (SELECT id FROM EVENT_MANAGERS WHERE id = (SELECT id FROM EVENTS WHERE id = NEW.event_id)),
+        'A new payment has been made for Event ID: ' || NEW.event_id
     );
-END $$
-
-DELIMITER ;
--- this trigger is not automatically executed from my code, haven't figured how, you can comy the trigger and execute directly on this database.
+END;
