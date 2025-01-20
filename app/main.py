@@ -17,7 +17,7 @@ DATABASE = os.getenv("MYSQL_DATABASE")
 USERNAME = os.getenv("MYSQLUSER")
 PASSWORD = os.getenv("MYSQL_PASSWORD")
 HOSTNAME = os.getenv("MYSQLHOST")
-
+MYSQL_URL = os.getenv("event-management-sys-db.MYSQL_URL")
 
 @app.get("/")
 def home_page():
@@ -28,7 +28,7 @@ def home_page():
 def get_all_events():
 
     def __get_events():
-        conn = connect_db(USERNAME, HOSTNAME, PASSWORD)
+        conn = MYSQL_URL
         cursor = conn.cursor()
         get_events = "SELECT event_name, description, date, event_image, event_fee, categories FROM events"
         cursor.execute(get_events)
