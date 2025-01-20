@@ -1,11 +1,10 @@
-from db import connect_db
-from accounts import username, password, hostname
+import sqlite3
+from app.db import get_db
 
-# this dammy data for db
 def seed_db():
     """populate db with dummy data."""
-    conn = connect_db(username, hostname, password)
-    cursor = conn.cursor()
+    db = get_db()
+    cursor = db.cursor()
 
     event_data = [
         ("Hactoberfest", "Come and Lets talk about security of systems", "2025-10-10", 500.0, "Tech"),
@@ -14,8 +13,8 @@ def seed_db():
     ]
     try:
         cursor.executemany("INSERT INTO events (event_name, description, date, event_fee, categories)VALUES (%s, %s, %s, %s, %s)", event_data)
-        conn.commit()
-        conn.close()
+        db.commit()
+        db.close()
         return "dummy data was successfully created."
     except Exception as e:
         return f"Error! {e}"
