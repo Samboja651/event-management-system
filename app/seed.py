@@ -1,10 +1,15 @@
 from db import connect_db
-from accounts import username, password, hostname
+import os
+
+DATABASE = os.getenv("MYSQL_DATABASE")
+USERNAME = os.getenv("MYSQLUSER")
+PASSWORD = os.getenv("MYSQL_PASSWORD")
+HOSTNAME = os.getenv("MYSQLHOST")
 
 # this dammy data for db
 def seed_db():
     """populate db with dummy data."""
-    conn = connect_db(username, hostname, password)
+    conn = connect_db(USERNAME, HOSTNAME, PASSWORD)
     cursor = conn.cursor()
 
     event_data = [

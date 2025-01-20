@@ -1,11 +1,22 @@
 from flask import Flask, render_template, json, request, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from accounts import username, password, hostname
 from db import connect_db
 import mysql.connector
+import os
 
 app = Flask(__name__)
+app.config["MYSQL_DATABASE"] = os.getenv("MYSQL_DATABASE")
+app.config["MYSQLUSER"] = os.getenv("MYSQLUSER")
+app.config["MYSQLPASSWORD"] = os.getenv("MYSQL_PASSWORD")
+app.config["MYSQLHOST"] = os.getenv("MYSQLHOST")
+app.config["ENV"] = "PRODUCTION"
+app.config["DEBUG"] = "FALSE"
 
+# now env variables to local variables
+DATABASE = os.getenv("MYSQL_DATABASE")
+USERNAME = os.getenv("MYSQLUSER")
+PASSWORD = os.getenv("MYSQL_PASSWORD")
+HOSTNAME = os.getenv("MYSQLHOST")
 
 
 @app.get("/")
@@ -17,7 +28,7 @@ def home_page():
 def get_all_events():
 
     def __get_events():
-        conn = connect_db(username, hostname, password)
+        conn = connect_db(USERNAME, HOSTNAME, PASSWORD)
         cursor = conn.cursor()
         get_events = "SELECT event_name, description, date, event_image, event_fee, categories FROM events"
         cursor.execute(get_events)
@@ -55,7 +66,7 @@ def create_account():
         # hash the password
         hashed_password = generate_password_hash(user_password)
         # store user
-        conn = connect_db(username, hostname, password)
+        conn = connect_db(USERNAME, HOSTNAME, PASSWORD)
         cursor = conn.cursor()
         store_user = "INSERT INTO customers(name, email, password)VALUES(%s, %s, %s)"
         cursor.execute(store_user, (name, email, hashed_password))
