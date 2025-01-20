@@ -1,52 +1,36 @@
-import mysql.connector
-from accounts import username, password, hostname
+import sqlite3, click
+from flask import current_app
 
+DATABASE = "event_management_sys.db"
 
-def create_db(username: str, password: str, host: str):
-    try:
-        with mysql.connector.connect(
-            user = username,
-            host = host,
-            password = password
-        ) as connection:
-            create_db = "CREATE DATABASE event_management_sys"
-            with connection.cursor() as cursor:
-                cursor.execute(create_db)
-                print("db successfully created")
-    except Exception as e:
-        print(e)
+def get_db():
+    db = sqlite3.connect(DATABASE)
+    return db
 
-# create_db(username, password, hostname)
+def init_db():
+    db = get_db()
+    with current_app.open_resource("schema.sql")as schema:
+        db.executescript(schema.read().decode("utf-8"))
 
-def connect_db(username, hostname, password):
-   try:
-       connection = mysql.connector.connect(
-           user = username,
-           host = hostname,
-           password = password,
-           database = "event_management_sys"
-       )
-       print("Database is now connected.")
-       return connection
-   except Exception as error:
-       return f"Error! Check if Database exists, addition info: {error}"
+def delete_db():
+    db = get_db()
+    cursor = db.cursor()
+    statement = "DROP DATABASE ?"
+    cursor.execute(statement, DATABASE)
+    db.commit() # not sure this line is relevant
+    db.close()
 
-def create_tables():
-    try:
-        connection = connect_db(username, hostname, password)
-        cursor = connection.cursor()
+@click.command("init-db")
+def init_db_command():
+    """create new tables if the don't exists"""
+    init_db()
+    click.echo("Initialized the database.")
 
-        with open("./app/schema.sql", mode = "r", encoding="utf-8") as schema:
-            db_schema = schema.read().split(";")
-        for statement in db_schema:
-            if statement.strip():
-                cursor.execute(statement.strip(";"))
-        connection.commit()
-        connection.close()
-        print("Tables successfully created.")
-    except FileExistsError as e:
-        return e
-    except Exception as error:
-        return error
+@click.command("delete-db")
+def delete_db_command():
+    """delete database"""
+    click.echo("Database was deleted.")
 
-create_tables()
+def init_app(app):
+    app.cli.add_command(init_db_command)
+    app.cli.add_command(delete_db_command)
