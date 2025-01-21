@@ -2,7 +2,7 @@ from flask import Flask, render_template, json, request, redirect, url_for, Blue
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.db import get_db, init_app
 
-bp = Blueprint('events', __name__, url_prefix='/api')
+bp = Blueprint('events', __name__,)
 # auth is the name of the blueprint
 # __name__ is the location of the bp 
 
