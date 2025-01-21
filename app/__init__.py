@@ -22,11 +22,15 @@ def create_app():
         return "<h1>hello! HAKUNA MATATA.</h1>"
         # return render_template("")
 
+    @app.get("/hello")
+    def hello():
+        return "<h1>Hello James</h1>"
+    
     init_app(app) # to initialize db run flask --app app init-db
     # register routes
     app.register_blueprint(auth.bp)
     app.register_blueprint(events.bp)
-
+    app.add_url_rule("/hello", endpoint="hello")
     return app
 
 app = create_app()

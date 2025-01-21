@@ -9,16 +9,14 @@ bp = Blueprint('events', __name__,)
 @bp.route("/events", methods=('GET', 'POST'))
 def get_all_events():
     if request.method == "GET":
-        def __get_events():
-            db = get_db()
-            cursor = db.cursor()
-            get_events = "SELECT event_name, description, date, event_image, event_fee, categories FROM events"
-            cursor.execute(get_events)
-            records = cursor.fetchall()
-            db.close()
-            return records
+
+        db = get_db()
+        cursor = db.cursor()
+        get_events = "SELECT event_name, description, date, event_image, event_fee, categories FROM events"
+        cursor.execute(get_events)
+        events = cursor.fetchall()
+        db.close()
         
-        events = __get_events()
         keys = ["event_name", "description", "date", "event_image", "event_fee", "categories"]
         event_list = [dict(zip(keys, event)) for event in events]
         """
