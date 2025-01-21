@@ -17,10 +17,34 @@ def create_app():
         # ignore as folder exists
         pass
 
-    @app.get("/")
-    def home_page():
-        return "<h1>hello! HAKUNA MATATA.</h1>"
-        # return render_template("")
+    @app.route("/", methods=('GET', 'POST'))
+    def get_all_events():
+        if request.method == "GET":
+            def __get_events():
+                db = get_db()
+                cursor = db.cursor()
+                get_events = "SELECT event_name, description, date, event_image, event_fee, categories FROM events"
+                cursor.execute(get_events)
+                records = cursor.fetchall()
+                db.close()
+                return records
+            
+            events = __get_events()
+            keys = ["event_name", "description", "date", "event_image", "event_fee", "categories"]
+            event_list = [dict(zip(keys, event)) for event in events]
+            """
+            how above lines works.
+            the keys are selected columns inside events table.
+            events is an object returned by fetching records inside events table.
+            events object has this data structure [(), (), ()]
+            we loop throught the events to get each event in form ('', '', '')
+            the len of keys and event match.
+            zip(keys, event) combines each item in each key and event item respectively. we get (key, event_item)
+            dict(zip) converts the zip into dictionary.
+            then finally we append the dict into the list.
+            """
+            event_list = json.dumps(event_list, indent = 4) # convert to json. api format.
+            return event_list
 
     init_app(app) # to initialize db run flask --app app init-db
     # register routes
