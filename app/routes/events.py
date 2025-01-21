@@ -33,4 +33,4 @@ def get_all_events():
         then finally we append the dict into the list.
         """
         event_list = json.dumps(event_list, indent = 4) # convert to json. api format.
-        return event_list
+        return "<h1>loaded events</h1>"
